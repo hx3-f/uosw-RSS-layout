@@ -1,3 +1,41 @@
+ <div id="handshake-feed-container">
+    <p style="text-align:center;">Loading latest jobs...</p>
+</div>
+
+<style>
+    /* Styling to match Divi's clean aesthetic */
+    #handshake-feed-container {
+        font-family: inherit;
+        border: 1px solid #e2e2e2;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .hs-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        transition: background 0.3s ease;
+    }
+    .hs-item:last-child { border-bottom: none; }
+    .hs-item:hover { background: #f9f9f9; }
+    
+    .hs-title {
+        display: block;
+        font-weight: bold;
+        color: #a2191e; /* Standard WordPress Link Color */
+        text-decoration: none;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    .hs-title:hover { color: #c8242a; text-decoration: underline; }
+    
+    .hs-meta {
+        font-size: 13px;
+        color: #666;
+    }
+    .hs-date { color: #999; margin-top: 5px; font-style: italic; }
+</style>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const rssUrl = 'https://uoregon.joinhandshake.com/external_feeds/25902/public.rss?token=jiBGTRr5CwDhT2tN--omkvEecNT3KBd2pYjn9-7gZmOikThkD91Elw';
