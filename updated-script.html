@@ -1,0 +1,64 @@
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rssUrl = 'https://uoregon.joinhandshake.com/external_feeds/25902/public.rss?token=jiBGTRr5CwDhT2tN--omkvEecNT3KBd2pYjn9-7gZmOikThkD91Elw';
+    const container = document.getElementById('handshake-feed-container');
+    
+    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                let html = '';
+                
+                // Iterating through ALL items (no .slice(0, 5))
+                data.items.forEach(item => {
+                    const pubDate = new Date(item.pubDate).toLocaleDateString();
+                    
+                    // 1. Extract Employer using Regex
+                    const employerMatch = item.content.match(/Employer:\s*(.*)/);
+                    const employer = employerMatch ? employerMatch[1].trim() : 'Not Specified';
+
+                    // 2. Extract Expiry Date using Regex
+                    const expiresMatch = item.content.match(/Expires:\s*(.*)/);
+                    const expires = expiresMatch ? expiresMatch[1].trim() : 'Not Specified';
+
+                    // 3. Clean up the description and limit to ~150 words
+                    // We remove the Employer/Expires/Title lines from the text block
+                    let cleanDesc = item.content
+                        .replace(/Employer:.*(\r?\n|$)/, '')
+                        .replace(/Expires:.*(\r?\n|$)/, '')
+                        .replace(/Title:.*(\r?\n|$)/, '')
+                        .trim();
+
+                    const words = cleanDesc.split(/\s+/);
+                    const shortDescription = words.length > 150 
+                        ? words.slice(0, 150).join(' ') + '...' 
+                        : cleanDesc;
+                    
+                    // 4. Build the HTML output in the requested format
+                    html += `
+                        <div class="hs-item" style="margin-bottom: 25px;">
+                            <a class="hs-title" href="${item.link}" target="_blank">${item.title}</a>
+                            <div class="hs-meta">
+                                <strong>Employer:</strong> ${employer}<br>
+                                <strong>Posted on</strong> ${pubDate}
+                            </div>
+                            <div class="hs-description" style="margin: 10px 0; font-size: 14px; line-height: 1.5;">
+                                ${shortDescription}
+                            </div>
+                            <div class="hs-expires" style="font-size: 13px; color: #666;">
+                                <strong>Expires on:</strong> ${expires}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p>Unable to load feed at this time.</p>';
+            }
+        })
+        .catch(err => {
+            container.innerHTML = '<p>Error loading feed.</p>';
+            console.error(err);
+        });
+});
+</script>

@@ -47,7 +47,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (data.status === 'ok') {
                 let html = '';
-                // Limit to the latest 5 items
                 data.items.forEach(item => {
                     // Clean up Handshake dates
                     const pubDate = new Date(item.pubDate).toLocaleDateString();
