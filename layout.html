@@ -1,0 +1,75 @@
+ <div id="handshake-feed-container">
+    <p style="text-align:center;">Loading latest jobs...</p>
+</div>
+
+<style>
+    /* Styling to match Divi's clean aesthetic */
+    #handshake-feed-container {
+        font-family: inherit;
+        border: 1px solid #e2e2e2;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .hs-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        transition: background 0.3s ease;
+    }
+    .hs-item:last-child { border-bottom: none; }
+    .hs-item:hover { background: #f9f9f9; }
+    
+    .hs-title {
+        display: block;
+        font-weight: bold;
+        color: #a2191e; /* Standard WordPress Link Color */
+        text-decoration: none;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    .hs-title:hover { color: #c8242a; text-decoration: underline; }
+    
+    .hs-meta {
+        font-size: 13px;
+        color: #666;
+    }
+    .hs-date { color: #999; margin-top: 5px; font-style: italic; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rssUrl = 'https://uoregon.joinhandshake.com/external_feeds/25902/public.rss?token=jiBGTRr5CwDhT2tN--omkvEecNT3KBd2pYjn9-7gZmOikThkD91Elw';
+    const container = document.getElementById('handshake-feed-container');
+    
+    // We use the rss2json API to parse the Handshake feed into readable JSON
+    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                let html = '';
+                // Limit to the latest 5 items
+                data.items.forEach(item => {
+                    // Clean up Handshake dates
+                    const pubDate = new Date(item.pubDate).toLocaleDateString();
+                    
+                    html += `
+                        <div class="hs-item">
+                            <a class="hs-title" href="${item.link}" target="_blank">${item.title}</a>
+                            <div class="hs-meta">
+                                ${item.content.substring(0, 100)}...
+                            </div>
+                            <div class="hs-date">Posted on ${pubDate}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p>Unable to load feed at this time.</p>';
+            }
+        })
+        .catch(err => {
+            container.innerHTML = '<p>Error loading feed.</p>';
+            console.error(err);
+        });
+});
+</script>
