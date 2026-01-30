@@ -1,0 +1,104 @@
+ <div id="handshake-feed-container">
+    <p style="text-align:center;">Loading latest jobs...</p>
+</div>
+
+<style>
+    /* Styling to match Divi's clean aesthetic */
+    #handshake-feed-container {
+        font-family: inherit;
+        border: 1px solid #e2e2e2;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .hs-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        transition: background 0.3s ease;
+    }
+    .hs-item:last-child { border-bottom: none; }
+    .hs-item:hover { background: #f9f9f9; }
+    
+    .hs-title {
+        display: block;
+        font-weight: bold;
+        color: #a2191e; /* Standard WordPress Link Color */
+        text-decoration: none;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    .hs-title:hover { color: #c8242a; text-decoration: underline; }
+    
+    .hs-meta {
+        font-size: 13px;
+        color: #666;
+    }
+    .hs-date { color: #999; margin-top: 5px; font-style: italic; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rssUrl = 'https://uoregon.joinhandshake.com/external_feeds/25902/public.rss?token=jiBGTRr5CwDhT2tN--omkvEecNT3KBd2pYjn9-7gZmOikThkD91Elw';
+    const container = document.getElementById('handshake-feed-container');
+    
+    // We use AllOrigins to bypass CORS and get the raw XML
+    fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`)
+        .then(response => response.text())
+        .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+        .then(data => {
+            const items = data.querySelectorAll("item");
+            let html = '';
+
+            if (items.length > 0) {
+                items.forEach(item => {
+                    const title = item.querySelector("title")?.textContent;
+                    const link = item.querySelector("link")?.textContent;
+                    const content = item.querySelector("description")?.textContent || "";
+                    const pubDateRaw = item.querySelector("pubDate")?.textContent;
+                    const pubDate = new Date(pubDateRaw).toLocaleDateString();
+
+                    // Regex Extraction for Handshake fields
+                    const employerMatch = content.match(/Employer:\s*(.*)/);
+                    const employer = employerMatch ? employerMatch[1].trim() : 'Not Specified';
+
+                    const expiresMatch = content.match(/Expires:\s*(.*)/);
+                    const expires = expiresMatch ? expiresMatch[1].trim() : 'Not Specified';
+
+                    // Clean and truncate description
+                    let cleanDesc = content
+                        .replace(/Employer:.*(\r?\n|$)/, '')
+                        .replace(/Expires:.*(\r?\n|$)/, '')
+                        .replace(/Title:.*(\r?\n|$)/, '')
+                        .trim();
+
+                    const words = cleanDesc.split(/\s+/);
+                    const shortDescription = words.length > 150 
+                        ? words.slice(0, 150).join(' ') + '...' 
+                        : cleanDesc;
+
+                    html += `
+                        <div class="hs-item" style="margin-bottom: 25px;">
+                            <a class="hs-title" href="${link}" target="_blank">${title}</a>
+                            <div class="hs-meta">
+                                <strong>Employer:</strong> ${employer}<br>
+                                <strong>Posted on</strong> ${pubDate}
+                            </div>
+                            <div class="hs-description" style="margin: 10px 0; font-size: 14px; line-height: 1.5;">
+                                ${shortDescription}
+                            </div>
+                            <div class="hs-expires" style="font-size: 13px; color: #666;">
+                                <strong>Expires on:</strong> ${expires}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p>No jobs found at this time.</p>';
+            }
+        })
+        .catch(err => {
+            container.innerHTML = '<p>Error loading feed.</p>';
+            console.error(err);
+        });
+});
+</script>
